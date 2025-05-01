@@ -83,4 +83,5 @@ def home(username):
 
     root.mainloop()
 
-
+if __name__ == "__main__":
+    home('Atharva')
