@@ -130,12 +130,6 @@ def update_owner(username, password):
 
 #database commands
 connect()
-"""
-insert_owner('ataa','pass')
-update_owner('ataa','123')
-insert(8079, 'Ataa', 'ataago7@gmail.com','Ataago',19)
-insert(83079, 'Nishant', 'noob@gmail.com','Nish',20)
-insert(12379, 'Amit', 'wastefellow@gmail.com', '@mit',21)"""
 
 
 insert_games(123, 'GTA V', 'Openworld  ', '17th Sep, 2013',5, 92)

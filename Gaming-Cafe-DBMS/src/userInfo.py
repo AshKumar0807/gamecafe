@@ -1,16 +1,16 @@
 import tkinter
 from tkinter import *
+from tkinter import ttk
 from tkinter import messagebox
 
 import tkinterCommands
 import gamesList
 import database
 
-#main Window
+# main Window
 def window(selected_tuple):
     gamer_info = database.view_gamer(selected_tuple[0])
-    print('Selected Gamer: ',gamer_info)
-
+    print('Selected Gamer: ', gamer_info)
 
     gamer_ID = gamer_info[0][0]
     gamer_tag = gamer_info[0][1]
@@ -20,16 +20,18 @@ def window(selected_tuple):
 
     def open_games_list():
         gamesList.window(gamer_ID)
-        print('back to userinfo')   #debug line
+        print('Back to userinfo')  # Debug line
         view_command()
-        print('view_comand executed')   #debug line.. both not working
+        print('view_command executed')  # Debug line
 
     def get_selected_row(event):
-        index = inventory_list.curselection()[0]
-        print(index)
-        global selected_tuple_games
-        selected_tuple_games = inventory_list.get(index)
-        print(selected_tuple_games)
+        try:
+            index = inventory_list.curselection()[0]
+            global selected_tuple_games
+            selected_tuple_games = inventory_list.get(index)
+            print(selected_tuple_games)
+        except IndexError:
+            pass  # Prevent error when no item is selected
 
     def view_command():
         inventory_list.delete(0, END)
@@ -37,35 +39,75 @@ def window(selected_tuple):
             inventory_list.insert(END, row)
 
     def remove_game_command():
-        if messagebox.askokcancel('Delete Game', 'Are you sure you want to remove %s permenantly from %s?' % (selected_tuple_games[2],gamer_tag) ):
-            database.delete_game(selected_tuple_games[0])
-        view_command()
-        
+        try:
+            if messagebox.askokcancel(
+                'Delete Game',
+                f'Are you sure you want to remove {selected_tuple_games[2]} permanently from {gamer_tag}?',
+            ):
+                database.delete_game(selected_tuple_games[0])
+            view_command()
+        except NameError:
+            messagebox.showinfo("Warning", "Select a Game.")
+
     user_info = Tk()
-    user_info.title('Gamer Info: %s' %gamer_tag)
-    print(selected_tuple)       #debug line
-    
+    user_info.title(f'Gamer Info: {gamer_tag}')
+    user_info.geometry("900x700")  # Set window size
+
     def remove_gamer_command():
-        if messagebox.askokcancel('Delete User', 'Are you sure you want to remove %s permenantly?' % gamer_tag):
+        if messagebox.askokcancel(
+            'Delete User',
+            f'Are you sure you want to remove {gamer_tag} permanently?',
+        ):
             database.delete(gamer_ID)
             user_info.destroy()
-        
-    tkinterCommands.createLable(user_info, 'Name :', row=0, col=0)
-    tkinterCommands.createLable(user_info, gamer_tag, row=0, col=1)
-    tkinterCommands.createLable(user_info, 'Email :', row=1, col=0)
-    tkinterCommands.createLable(user_info, email, row=1, col=1)
-    tkinterCommands.createLable(user_info, 'Gamer Tag :', row=2, col=0)
-    tkinterCommands.createLable(user_info, tag, row=2, col=1)
-    tkinterCommands.createLable(user_info, 'Age :', row=3, col=0)
-    tkinterCommands.createLable(user_info, age, row=3, col=1)
 
-    tkinterCommands.createButton(user_info, 'Add Game', width=12, row=0, col=4, cmd=open_games_list)
-    tkinterCommands.createButton(user_info, 'Remove Game', width=12, row=1, col=4, cmd=remove_game_command )
-    tkinterCommands.createButton(user_info, 'Delete User', width=12, row=2, col=4, cmd=remove_gamer_command)
-    tkinterCommands.createButton(user_info, 'Refresh', width=12, row=2, col=3, cmd=view_command)
+    # Configure ttk theme (black and beige)
+    style = ttk.Style()
+    style.theme_use("default")
+    style.configure("TFrame", background="#000000")
+    style.configure("TLabel", background="#000000", foreground="#f5f5dc", font=("Arial", 12))
+    style.configure("TButton", background="#f5f5dc", foreground="#000000", font=("Arial", 10, "bold"))
+    style.map("TButton", background=[("active", "#dbdbdb")], foreground=[("active", "#000000")])
 
-    inventory_list = tkinterCommands.createList(user_info, height=30, width=120, row=5, col=0, columnspan=5)
-    inventory_list.bind('<<ListboxSelect>>',get_selected_row)
+    # Main content frame
+    main_frame = ttk.Frame(user_info, style="TFrame")
+    main_frame.pack(fill=BOTH, expand=True, padx=20, pady=20)
+
+    # User info labels
+    ttk.Label(main_frame, text='Name:').grid(row=0, column=0, sticky=W, padx=10, pady=5)
+    ttk.Label(main_frame, text=gamer_tag).grid(row=0, column=1, sticky=W, padx=10, pady=5)
+
+    ttk.Label(main_frame, text='Email:').grid(row=1, column=0, sticky=W, padx=10, pady=5)
+    ttk.Label(main_frame, text=email).grid(row=1, column=1, sticky=W, padx=10, pady=5)
+
+    ttk.Label(main_frame, text='Gamer Tag:').grid(row=2, column=0, sticky=W, padx=10, pady=5)
+    ttk.Label(main_frame, text=tag).grid(row=2, column=1, sticky=W, padx=10, pady=5)
+
+    ttk.Label(main_frame, text='Age:').grid(row=3, column=0, sticky=W, padx=10, pady=5)
+    ttk.Label(main_frame, text=age).grid(row=3, column=1, sticky=W, padx=10, pady=5)
+
+    # Buttons
+    button_frame = ttk.Frame(main_frame, style="TFrame")
+    button_frame.grid(row=0, column=3, rowspan=4, sticky=N, padx=20, pady=10)
+
+    ttk.Button(button_frame, text='Add Game', width=15, command=open_games_list).grid(row=0, column=0, pady=10)
+    ttk.Button(button_frame, text='Remove Game', width=15, command=remove_game_command).grid(row=1, column=0, pady=10)
+    ttk.Button(button_frame, text='Delete User', width=15, command=remove_gamer_command).grid(row=2, column=0, pady=10)
+    ttk.Button(button_frame, text='Refresh', width=15, command=view_command).grid(row=3, column=0, pady=10)
+
+    # Inventory list (games list)
+    list_frame = ttk.Frame(main_frame)
+    list_frame.grid(row=5, column=0, columnspan=4, sticky=W + E, padx=10, pady=20)
+
+    inventory_list = Listbox(list_frame, height=20, width=80, font=("Arial", 10))
+    inventory_list.pack(side=LEFT, fill=BOTH, expand=True)
+    inventory_list.bind('<<ListboxSelect>>', get_selected_row)
+
+    scrollbar = ttk.Scrollbar(list_frame, orient=VERTICAL, command=inventory_list.yview)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    inventory_list.config(yscrollcommand=scrollbar.set)
+
+    # Load inventory data
     view_command()
 
     user_info.mainloop()
